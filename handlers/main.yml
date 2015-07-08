@@ -1,0 +1,4 @@
+---
+
+- name: graphite syncdb
+  shell: graphite-manage syncdb --noinput

@@ -1,0 +1,12 @@
+---
+
+- name: install packages
+  apt: name={{ item }} state=present update_cache=yes
+  with_items:
+    - uwsgi
+    - uwsgi-plugin-python
+    - graphite-web
+    - graphite-carbon
+
+- name: remove database files when purging graphite-carbon
+  debconf: name='graphite-carbon' question='Configuring graphite-carbon' value='no' vtype='string'

@@ -1,0 +1,25 @@
+## Graphite local_settings.py
+
+{% for g in graphite_webapp %}
+#####################################
+# {{g.name}}
+#####################################
+{% for c in g.config %}
+{{c}}
+{% endfor %}
+
+{% endfor %}
+#####################################
+# Database Configuration
+#####################################
+
+DATABASES = {
+    'default': {
+        'NAME': '{{graphite_db_dbname}}',
+        'ENGINE': 'django.db.backends.{{graphite_db_backend}}',
+        'USER': '{{graphite_db_user}}',
+        'PASSWORD': '{{graphite_db_password}}',
+        'HOST': '{{graphite_db_host}}',
+        'PORT': '{{graphite_db_port}}'
+    }
+}

@@ -1,0 +1,90 @@
+---
+
+# Carbon
+- name: deploy webapp configuration file
+  template: src=local_settings.py.j2 dest=/etc/graphite/local_settings.py owner=root group=root mode=0644 backup=yes
+  notify: graphite syncdb
+
+- meta: flush_handlers
+
+- name: configure carbon to start at boot
+  lineinfile: dest=/etc/default/graphite-carbon regexp="^CARBON_CACHE_ENABLED=" line='CARBON_CACHE_ENABLED=true'
+
+- name: deploy carbon configuration file
+  template: src=carbon.conf.j2 dest=/etc/carbon/carbon.conf mode=0644 owner=root group=root
+
+- name: deploy storage schema configuration file
+  template: src=storage-schemas.conf.j2 dest=/etc/carbon/storage-schemas.conf mode=0644 owner=root group=root
+
+- name: deploy storage aggregation configuration file
+  template: src=storage-aggregation.conf.j2 dest=/etc/carbon/storage-aggregation.conf mode=0644 owner=root group=root
+
+- name: start carbon-cache
+  service: name=carbon-cache state=started enabled=yes
+
+# Graphite db init
+- name: inspect graphite db
+  command: graphite-manage inspectdb
+  register: graphite_inspect
+  changed_when: False
+
+- name: check for secret key warning
+  command: echo SECRET_KEY is set to an unsafe default.
+  failed_when: "'SECRET_KEY' in graphite_inspect.stderr"
+  changed_when: False
+
+- name: create sql schema
+  command: graphite-manage syncdb --noinput
+  when: graphite_inspect.stdout.find("AccountMygraph") == -1
+
+- name: create superuser account
+  command: graphite-manage createsuperuser --username={{ graphite_admin_username }} --email={{ graphite_admin_email }} --noinput
+  register: superuser_created
+  args:
+    creates: "/usr/share/graphite-web/.superuser_created"
+  when: graphite_inspect.stdout.find("AccountMygraph") == -1
+
+- name: prepare to set up superuser password
+  template: src=createsuperuser.py.j2 dest=/tmp/createsuperuser.py
+  when: superuser_created|changed
+  register: debug2
+
+- name: set superuser password
+  shell: "graphite-manage shell < /tmp/createsuperuser.py"
+  when: superuser_created|changed
+
+- name: create lock file
+  file: path="/usr/share/graphite-web/.superuser_created" state=touch
+  when: superuser_created|changed
+
+- name: Remove temp file
+  file: path=/tmp/createsuperuser.py state=absent
+
+# Uwsgi
+- name: check if graphite.wsgi is present in config folder
+  stat: path=/etc/uwsgi/apps-available/graphite.wsgi
+  register: graphite_wsgi_exist
+
+- name: copy graphite.wsgi to uwsgi config folder
+  command: cp -f /usr/share/graphite-web/graphite.wsgi /etc/uwsgi/apps-available/graphite.wsgi
+  when: graphite_wsgi_exist.stat.exists == False
+  
+- name: set graphite.wsgi permissions
+  file: path=/etc/uwsgi/apps-available/graphite.wsgi owner=root group=root mode=0644
+
+- name: symlink graphite.wsgi to apps-enabled
+  file: src=/etc/uwsgi/apps-available/graphite.wsgi dest=/etc/uwsgi/apps-enabled/graphite.wsgi owner=root group=root state=link
+
+- name: check if wsgi.py is present in graphite-web folder
+  stat: path=/usr/share/graphite-web/wsgi.py
+  register: wsgi_py_exist
+
+- name: copy graphite.wsgi to wsgi.py
+  command: cp -f /usr/share/graphite-web/graphite.wsgi /usr/share/graphite-web/wsgi.py
+  when: wsgi_py_exist.stat.exists == False
+  
+- name: set wsgi.py permissions
+  file: path=/usr/share/graphite-web/wsgi.py owner=root group=root mode=0644
+
+- name: start uwsgi
+  service: name=uwsgi state=started enabled=yes

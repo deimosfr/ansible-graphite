@@ -1,0 +1,7 @@
+[uwsgi]
+processes = 2
+socket = 127.0.0.1:3031
+gid = graphite
+uid = graphite
+chdir = /etc/graphite
+module = wsgi:application

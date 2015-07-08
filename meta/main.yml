@@ -1,0 +1,15 @@
+---
+galaxy_info:
+  author: "Pierre Mavro"
+  company: 
+  description: graphite
+  license: GPL
+  min_ansible_version: 1.6
+  platforms:
+    - name: Debian
+      versions:
+        - jessie
+  categories:
+    - networking
+    - web
+    - system

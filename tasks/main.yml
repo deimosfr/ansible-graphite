@@ -1,0 +1,11 @@
+---
+
+- include: install.yml
+  tags: [graphite]
+
+- include: mysql.yml
+  when: graphite_db_backend == 'mysql'
+  tags: [graphite, graphite-mysql]
+
+- include: configure.yml
+  tags: [graphite]

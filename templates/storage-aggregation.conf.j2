@@ -1,0 +1,7 @@
+{% for v in graphite_storage_aggregation %}
+[{{v.name}}]
+{% for c in v.config %}
+{{c}}
+{% endfor %}
+
+{% endfor %}
