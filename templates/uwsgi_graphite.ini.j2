@@ -1,7 +1,12 @@
 [uwsgi]
-processes = 2
-socket = 127.0.0.1:3031
-gid = graphite
-uid = graphite
-chdir = /etc/graphite
-module = wsgi:application
+processes = {{uwsgi_processes}}
+socket = {{uwsgi_socket}}
+chmod-socket = {{uwsgi_chmod_socket}}
+gid = {{uwsgi_uid}}
+uid = {{uwsgi_gid}}
+chdir = {{uwsgi_chdir}}
+module = {{uwsgi_module}}
+pythonpath = /usr/share/graphite-web
+{% if uwsgi_thunder_lock %}
+thunder-lock = true
+{% endif %}

@@ -10,3 +10,4 @@
 
 - name: remove database files when purging graphite-carbon
   debconf: name='graphite-carbon' question='Configuring graphite-carbon' value='no' vtype='string'
+  changed_when: false

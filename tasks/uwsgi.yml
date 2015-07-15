@@ -1,0 +1,30 @@
+---
+
+# Uwsgi
+- name: copy graphite.wsgi to uwsgi config folder
+  template: src=uwsgi_graphite.ini.j2 dest=/etc/uwsgi/apps-available/uwsgi_graphite.ini mode=0644 owner=root group=root
+  notify: uwsgi restart
+  
+- name: set graphite.wsgi permissions
+  file: path=/etc/uwsgi/apps-available/uwsgi_graphite.ini owner=root group=root mode=0644
+
+- name: symlink graphite.wsgi to apps-enabled
+  file: src=/etc/uwsgi/apps-available/uwsgi_graphite.ini dest=/etc/uwsgi/apps-enabled/uwsgi_graphite.ini owner=root group=root state=link
+  notify: uwsgi restart
+
+- name: check if wsgi.py is present in graphite-web folder
+  stat: path=/usr/share/graphite-web/wsgi.py
+  register: wsgi_py_exist
+
+- name: copy graphite.wsgi to wsgi.py
+  command: cp -f /usr/share/graphite-web/graphite.wsgi /usr/share/graphite-web/wsgi.py
+  when: wsgi_py_exist.stat.exists == False
+  
+- name: set wsgi.py permissions
+  file: path=/usr/share/graphite-web/wsgi.py owner=root group=root mode=0644
+
+- name: start uwsgi
+  service: name=uwsgi state=started enabled=yes
+  changed_when: False
+
+- meta: flush_handlers

@@ -1,11 +1,19 @@
 ---
 
+# Install pacakges
 - include: install.yml
   tags: [graphite]
 
+# Configure MySQL/MariaDB
 - include: mysql.yml
   when: graphite_db_backend == 'mysql'
   tags: [graphite, graphite-mysql]
 
-- include: configure.yml
-  tags: [graphite]
+# Carbon cache
+- include: carbon.yml
+  tags: [graphite, carbon-cache]
+
+# Uwsgi
+- include: uwsgi.yml
+  when: graphite_manage_uwsgi
+  tags: [graphite, uwsgi]

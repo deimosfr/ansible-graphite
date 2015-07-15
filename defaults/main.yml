@@ -1,6 +1,7 @@
 # Account
 graphite_admin_username: admin
 graphite_admin_email: admin@admin.com
+graphite_conf_dir: '/etc/graphite'
 
 # MySQL/MariaDB
 graphite_db_backend: mysql
@@ -32,7 +33,7 @@ graphite_webapp:
   - name: 'filesystem_path'
     config:
       - GRAPHITE_ROOT = '/usr/share/graphite-web'
-      - CONF_DIR = '/etc/graphite'
+      - CONF_DIR = '{{graphite_conf_dir}}'
       - STORAGE_DIR = '/var/lib/graphite/whisper'
       - CONTENT_DIR = '/usr/share/graphite-web/static'
       #-DASHBOARD_CONF = '/opt/graphite/conf/dashboard.conf'
@@ -211,3 +212,15 @@ graphite_storage_aggregation:
       - pattern = .*
       - xFilesFactor = 0.5
       - aggregationMethod = average
+
+# Uwsgi
+graphite_manage_uwsgi: true
+uwsgi_processes: 2
+uwsgi_socket: 127.0.0.1:3031
+#uwsgi_socket: /run/uwsgi/app/uwsgi_graphite/socket
+uwsgi_chmod_socket: 666
+uwsgi_uid: _graphite
+uwsgi_gid: _graphite
+uwsgi_chdir: "{{graphite_conf_dir}}"
+uwsgi_module: 'wsgi:application'
+uwsgi_thunder_lock: false

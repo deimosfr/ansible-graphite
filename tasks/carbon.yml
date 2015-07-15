@@ -1,0 +1,60 @@
+---
+
+# Carbon
+- name: deploy webapp configuration file
+  template: src=local_settings.py.j2 dest=/etc/graphite/local_settings.py owner=root group=root mode=0644 backup=yes
+  notify: graphite syncdb
+
+- meta: flush_handlers
+
+- name: configure carbon to start at boot
+  lineinfile: dest=/etc/default/graphite-carbon regexp="^CARBON_CACHE_ENABLED=" line='CARBON_CACHE_ENABLED=true'
+
+- name: deploy carbon configuration file
+  template: src=carbon.conf.j2 dest=/etc/carbon/carbon.conf mode=0644 owner=root group=root
+  notify: carbon restart
+
+- name: deploy storage schema configuration file
+  template: src=storage-schemas.conf.j2 dest=/etc/carbon/storage-schemas.conf mode=0644 owner=root group=root
+  notify: carbon restart
+
+- name: deploy storage aggregation configuration file
+  template: src=storage-aggregation.conf.j2 dest=/etc/carbon/storage-aggregation.conf mode=0644 owner=root group=root
+  notify: carbon restart
+
+- name: start carbon-cache
+  service: name=carbon-cache state=started enabled=yes
+  changed_when: False
+
+# Graphite db init
+- name: inspect graphite db
+  command: graphite-manage inspectdb
+  register: graphite_inspect
+  changed_when: False
+
+- name: check for secret key warning
+  command: echo SECRET_KEY is set to an unsafe default.
+  failed_when: "'SECRET_KEY' in graphite_inspect.stderr"
+  changed_when: False
+
+- name: check if superuser and db have already been deployed
+  stat: path='/usr/share/graphite-web/.superuser_created'
+  register: superuser_created
+
+- name: create sql schema
+  command: graphite-manage syncdb --noinput
+  when: superuser_created.stat.exists == False
+
+- name: create superuser account
+  command: graphite-manage createsuperuser --username={{ graphite_admin_username }} --email={{ graphite_admin_email }} --noinput
+  when: superuser_created.stat.exists == False
+
+- name: set superuser password
+  shell: "graphite-manage shell < /usr/lib/python2.7/dist-packages/django/contrib/auth/management/commands/createsuperuser.py"
+  when: superuser_created.stat.exists == False
+
+- name: create lock file
+  file: path="/usr/share/graphite-web/.superuser_created" state=touch
+  when: superuser_created.stat.exists == False
+
+- meta: flush_handlers

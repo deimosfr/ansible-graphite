@@ -1,4 +1,10 @@
 ---
 
 - name: graphite syncdb
-  shell: graphite-manage syncdb --noinput
+  command: graphite-manage syncdb --noinput
+
+- name: uwsgi restart
+  service: name=uwsgi state=restarted
+
+- name: carbon restart
+  service: name=carbon-cache state=restarted
