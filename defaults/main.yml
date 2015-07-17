@@ -1,7 +1,14 @@
+# Manage services
+graphite_manage_service: True
+uwsgi_manage_service: True
+
 # Account
 graphite_admin_username: admin
 graphite_admin_email: admin@admin.com
+graphite_uid:
+graphite_gid:
 graphite_conf_dir: '/etc/graphite'
+graphite_datadir: '/var/lib/graphite'
 
 # MySQL/MariaDB
 graphite_db_backend: mysql
@@ -34,13 +41,13 @@ graphite_webapp:
     config:
       - GRAPHITE_ROOT = '/usr/share/graphite-web'
       - CONF_DIR = '{{graphite_conf_dir}}'
-      - STORAGE_DIR = '/var/lib/graphite/whisper'
+      - STORAGE_DIR = '{{graphite_datadir}}/whisper'
       - CONTENT_DIR = '/usr/share/graphite-web/static'
       #-DASHBOARD_CONF = '/opt/graphite/conf/dashboard.conf'
       #-GRAPHTEMPLATES_CONF = '/opt/graphite/conf/graphTemplates.conf'
-      - WHISPER_DIR = '/var/lib/graphite/whisper'
+      - WHISPER_DIR = '{{graphite_datadir}}/whisper'
       - LOG_DIR = '/var/log/graphite'
-      - INDEX_FILE = '/var/lib/graphite/search_index'
+      - INDEX_FILE = '{{graphite_datadir}}/search_index'
   #- name: 'email_configuration'
     #config:
       #-EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
@@ -82,11 +89,11 @@ graphite_webapp:
 graphite_carbon:
   - name: 'cache'
     config:
-      - STORAGE_DIR    = /var/lib/graphite/
+      - STORAGE_DIR    = {{graphite_datadir}}/
       - CONF_DIR       = /etc/carbon/
       - LOG_DIR        = /var/log/carbon/
       - PID_DIR        = /var/run/
-      - LOCAL_DATA_DIR = /var/lib/graphite/whisper/
+      - LOCAL_DATA_DIR = {{graphite_datadir}}/whisper/
       - ENABLE_LOGROTATION = False
       - USER = _graphite
       - MAX_CACHE_SIZE = inf
@@ -224,3 +231,4 @@ uwsgi_gid: _graphite
 uwsgi_chdir: "{{graphite_conf_dir}}"
 uwsgi_module: 'wsgi:application'
 uwsgi_thunder_lock: false
+uwsgi_enable_threads: true

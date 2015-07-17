@@ -1,6 +1,11 @@
 ---
 
-# Uwsgi
+- name: install uwsgi packages
+  apt: name={{ item }} state=present update_cache=yes
+  with_items:
+    - uwsgi
+    - uwsgi-plugin-python
+
 - name: copy graphite.wsgi to uwsgi config folder
   template: src=uwsgi_graphite.ini.j2 dest=/etc/uwsgi/apps-available/uwsgi_graphite.ini mode=0644 owner=root group=root
   notify: uwsgi restart

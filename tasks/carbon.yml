@@ -25,6 +25,7 @@
 - name: start carbon-cache
   service: name=carbon-cache state=started enabled=yes
   changed_when: False
+  when: graphite_manage_service
 
 # Graphite db init
 - name: inspect graphite db

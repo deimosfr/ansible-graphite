@@ -1,13 +1,34 @@
 ---
 
-- name: install packages
+- name: install graphite packages
   apt: name={{ item }} state=present update_cache=yes
   with_items:
-    - uwsgi
-    - uwsgi-plugin-python
     - graphite-web
     - graphite-carbon
+  register: graphite_packages
 
 - name: remove database files when purging graphite-carbon
   debconf: name='graphite-carbon' question='Configuring graphite-carbon' value='no' vtype='string'
-  changed_when: false
+  when: graphite_packages|changed
+  notify:
+  - carbon stop
+
+- meta: flush_handlers
+
+- name: set graphite user uid
+  user: name='_graphite' uid={{ graphite_uid }} state=present
+  when: graphite_uid
+
+- name: set graphite user gid
+  group: name='_graphite' gid={{ graphite_gid }} state=present
+  when: graphite_gid
+
+- name: reset graphite folder and subfolder to new uid
+  file: path={{item}} owner={{graphite_uid}} group={{graphite_gid}} follow=yes recurse=yes state=directory
+  with_items:
+    - "{{graphite_datadir}}"
+    - /var/log/graphite
+  when: graphite_uid or graphite_gid
+
+- name: start graphite carbon
+  service: name=carbon-cache state=started

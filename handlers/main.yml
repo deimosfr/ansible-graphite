@@ -5,6 +5,11 @@
 
 - name: uwsgi restart
   service: name=uwsgi state=restarted
+  when: uwsgi_manage_service
 
 - name: carbon restart
   service: name=carbon-cache state=restarted
+  when: graphite_manage_service
+
+- name: carbon stop
+  service: name=carbon-cache state=stopped

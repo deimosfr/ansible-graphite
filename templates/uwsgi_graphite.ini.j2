@@ -10,3 +10,6 @@ pythonpath = /usr/share/graphite-web
 {% if uwsgi_thunder_lock %}
 thunder-lock = true
 {% endif %}
+{% if uwsgi_enable_threads %}
+enable-threads = true
+{% endif %}
