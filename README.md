@@ -22,6 +22,7 @@ graphite_admin_username: admin
 graphite_admin_email: admin@admin.com
 
 # MySQL/MariaDB
+graphite_manage_db: true
 graphite_db_backend: mysql
 graphite_db_dbname: graphite
 graphite_db_user: graphite

@@ -28,6 +28,11 @@
 - name: set wsgi.py permissions
   file: path=/usr/share/graphite-web/wsgi.py owner=root group=root mode=0644
 
+- name: fix Debian jessie events issue
+  replace: dest=/usr/lib/python2.7/dist-packages/graphite/events/views.py regexp='request.raw_post_data' replace='request.body' backup=yes
+  notify: uwsgi restart
+  when: ansible_distribution_release == 'jessie'
+
 - name: start uwsgi
   service: name=uwsgi state=started enabled=yes
   changed_when: False

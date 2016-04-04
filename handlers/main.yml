@@ -2,6 +2,7 @@
 
 - name: graphite syncdb
   command: graphite-manage syncdb --noinput
+  when: graphite_manage_db
 
 - name: uwsgi restart
   service: name=uwsgi state=restarted

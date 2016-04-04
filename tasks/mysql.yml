@@ -2,9 +2,12 @@
 
 - name: install mysql/mariadb dependencies
   apt: name=python-mysqldb state=present
+  delegate_to: "{{graphite_db_host}}"
 
 - name: create graphite database
   mysql_db: name={{ graphite_db_dbname }} state=present encoding='utf8' collation='utf8_general_ci'
+  delegate_to: "{{graphite_db_host}}"
 
 - name: create user
   mysql_user: name={{ graphite_db_user }} password={{ graphite_db_password }} priv={{ graphite_db_dbname }}.*:ALL state=present
+  delegate_to: "{{graphite_db_host}}"

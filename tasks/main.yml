@@ -6,12 +6,16 @@
 
 # Configure MySQL/MariaDB
 - include: mysql.yml
-  when: graphite_db_backend == 'mysql'
+  when: graphite_manage_db and graphite_db_backend == 'mysql'
   tags: [graphite, graphite-mysql]
 
 # Carbon cache
 - include: carbon.yml
   tags: [graphite, carbon-cache]
+
+- include: carbon_db.yml
+  when: graphite_manage_db
+  tags: [graphite, carbon-cache, carbon-cache-db]
 
 # Uwsgi
 - include: uwsgi.yml
