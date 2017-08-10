@@ -2,9 +2,11 @@
 
 # Graphite db init
 - name: inspect graphite db
-  command: graphite-manage inspectdb
+  shell: export PYTHONPATH=/opt/graphite/webapp/; /opt/graphite/bin/python /opt/graphite/bin/django-admin.py inspectdb --settings=graphite.settings
   register: graphite_inspect
   changed_when: False
+  become: true
+  become_user: _graphite
 
 - name: check for secret key warning
   command: echo SECRET_KEY is set to an unsafe default.
@@ -12,23 +14,29 @@
   changed_when: False
 
 - name: check if superuser and db have already been deployed
-  stat: path='/usr/share/graphite-web/.superuser_created'
-  register: superuser_created
+  stat: path="{{ graphite_install_dir }}/.superuser_created"
+  register: superuser_created 
 
 - name: create sql schema
-  command: graphite-manage syncdb --noinput
+  shell: export PYTHONPATH=/opt/graphite/webapp/; /opt/graphite/bin/python /opt/graphite/bin/django-admin.py makemigrations --noinput --settings=graphite.settings
+  become: true
+  become_user: _graphite  
+  when: superuser_created.stat.exists == False
+
+- name: create sql schema
+  shell: export PYTHONPATH=/opt/graphite/webapp/; /opt/graphite/bin/python /opt/graphite/bin/django-admin.py migrate --run-syncdb --noinput --settings=graphite.settings
+  become: true
+  become_user: _graphite  
   when: superuser_created.stat.exists == False
 
 - name: create superuser account
-  command: graphite-manage createsuperuser --username={{ graphite_admin_username }} --email={{ graphite_admin_email }} --noinput
-  when: superuser_created.stat.exists == False
-
-- name: set superuser password
-  shell: "graphite-manage shell < /usr/lib/python2.7/dist-packages/django/contrib/auth/management/commands/createsuperuser.py"
+  shell: export PYTHONPATH=/opt/graphite/webapp/; /opt/graphite/bin/python /opt/graphite/bin/django-admin.py createsuperuser --username={{ graphite_admin_username }} --email={{ graphite_admin_email }} --noinput --settings=graphite.settings
+  become: true
+  become_user: _graphite
   when: superuser_created.stat.exists == False
 
 - name: create lock file
-  file: path="/usr/share/graphite-web/.superuser_created" state=touch
+  file: path="{{ graphite_install_dir }}/.superuser_created" state=touch
   when: superuser_created.stat.exists == False
 
 - meta: flush_handlers

@@ -1,0 +1,66 @@
+---
+
+- name: install required packages for graphite debian/ubuntu
+  apt: pkg={{ item }} state=present
+  with_items:
+    - build-essential
+    - memcached
+    - libcairo2-dev
+    - libffi-dev # for cairocffi
+    - python-dev
+    - python-virtualenv
+    - python-setuptools
+    - python-pip
+    - virtualenv
+    - libmysqlclient-dev
+  when: ansible_os_family == "Debian"
+
+- name: set graphite user uid
+  user: name='_graphite' state=present system=yes
+
+- name: set graphite user gid
+  group: name='_graphite' state=present
+
+- name: ensure graphite directory exists
+  file:
+    path: /opt/graphite/
+    state: directory
+    owner: _graphite
+    group: _graphite
+
+- name: create directory for logs
+  file:
+    path: "{{ graphite_log_dir }}"
+    state: directory
+    owner: _graphite
+    group: _graphite
+
+- name: create virtualenv if needed, install graphite python deps and install graphite itself
+  pip: name={{ item }} virtualenv=/opt/graphite chdir=/opt/graphite virtualenv_site_packages=no
+  become: True
+  become_user: _graphite
+  with_items:
+    - psycopg2
+    - scandir
+    - gunicorn
+    - python-memcached
+    - mysql-python
+    - whisper
+    # - carbon
+    # - graphite-web
+    # - https://github.com/graphite-project/whisper/tarball/master
+    # - https://github.com/graphite-project/carbon/tarball/master
+    # - https://github.com/graphite-project/graphite-web/tarball/master
+
+- name: create virtualenv if needed, install graphite python deps and install graphite itself
+  pip:
+    name: "{{ item }}"
+    virtualenv: /opt/graphite
+    chdir: /opt/graphite
+    virtualenv_site_packages: no
+    extra_args: '--install-option="--install-scripts=/opt/graphite/bin" --install-option="--install-lib=/opt/graphite/lib/python2.7/site-packages/" --install-option="--install-data=/opt/graphite"'
+  become: True
+  become_user: _graphite
+  with_items:
+    - carbon
+    - graphite-web

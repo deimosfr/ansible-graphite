@@ -6,7 +6,8 @@ gid = {{uwsgi_uid}}
 uid = {{uwsgi_gid}}
 chdir = {{uwsgi_chdir}}
 module = {{uwsgi_module}}
-pythonpath = /usr/share/graphite-web
+pythonpath = /opt/graphite/webapp/
+home = {{ graphite_install_dir }}
 {% if uwsgi_thunder_lock %}
 thunder-lock = true
 {% endif %}

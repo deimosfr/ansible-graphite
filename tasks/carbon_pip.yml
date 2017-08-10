@@ -1,0 +1,33 @@
+---
+
+# Carbon
+- name: deploy webapp configuration file
+  template: src=local_settings.py.j2 dest="{{ graphite_install_dir }}/lib/python2.7/site-packages/graphite/local_settings.py" owner=_graphite group=_graphite mode=0644 backup=yes
+  notify: graphite migrate
+
+- meta: flush_handlers
+
+- name: create systemd service
+  template:
+    src: carbon-cache.service.j2
+    dest: /lib/systemd/system/carbon-cache.service
+    mode: 0644
+    owner: "root"
+    group: "root"
+
+- name: deploy carbon configuration file
+  template: src=carbon.conf.j2 dest="{{ graphite_conf_dir }}/carbon.conf" mode=0644 owner=_graphite group=_graphite
+  notify: carbon restart
+
+- name: deploy storage schema configuration file
+  template: src=storage-schemas.conf.j2 dest="{{ graphite_conf_dir }}/storage-schemas.conf" mode=0644 owner=_graphite group=_graphite
+  notify: carbon restart
+
+- name: deploy storage aggregation configuration file
+  template: src=storage-aggregation.conf.j2 dest="{{ graphite_conf_dir }}/storage-aggregation.conf" mode=0644 owner=_graphite group=_graphite
+  notify: carbon restart
+
+- name: start carbon-cache
+  service: name=carbon-cache state=started enabled=yes
+  changed_when: False
+  when: graphite_manage_service
