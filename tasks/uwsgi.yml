@@ -18,20 +18,24 @@
   notify: uwsgi restart
 
 - name: check if wsgi.py is present in graphite-web folder
-  stat: path=/usr/share/graphite-web/wsgi.py
+  stat: path=/opt/graphite/webapp/wsgi.py
   register: wsgi_py_exist
 
-- name: copy graphite.wsgi to wsgi.py
-  command: cp -f /usr/share/graphite-web/graphite.wsgi /usr/share/graphite-web/wsgi.py
-  when: wsgi_py_exist.stat.exists == False
-  
-- name: set wsgi.py permissions
-  file: path=/usr/share/graphite-web/wsgi.py owner=root group=root mode=0644
+# - name: copy graphite.wsgi to wsgi.py
+#   command: cp -f /usr/share/graphite-web/graphite.wsgi /usr/share/graphite-web/wsgi.py
+#   when: wsgi_py_exist.stat.exists == False
 
-- name: fix Debian jessie events issue
-  replace: dest=/usr/lib/python2.7/dist-packages/graphite/events/views.py regexp='request.raw_post_data' replace='request.body' backup=yes
-  notify: uwsgi restart
-  when: ansible_distribution_release == 'jessie'
+- name: copy graphite.wsgi to wsgi.py
+  shell: cp -u /opt/graphite/lib/python2.7/site-packages/graphite/wsgi.py /opt/graphite/webapp/wsgi.py
+  when: wsgi_py_exist.stat.exists == False
+
+- name: set wsgi.py permissions
+  file: path=/opt/graphite/webapp/wsgi.py owner=_graphite group=_graphite mode=0644
+
+# - name: fix Debian jessie events issue
+#   replace: dest=/usr/lib/python2.7/dist-packages/graphite/events/views.py regexp='request.raw_post_data' replace='request.body' backup=yes
+#   notify: uwsgi restart
+#   when: ansible_distribution_release == 'jessie'
 
 - name: start uwsgi
   service: name=uwsgi state=started enabled=yes

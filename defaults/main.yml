@@ -7,8 +7,11 @@ graphite_admin_username: admin
 graphite_admin_email: admin@admin.com
 graphite_uid:
 graphite_gid:
-graphite_conf_dir: '/etc/graphite'
-graphite_datadir: '/var/lib/graphite'
+graphite_install_dir: '/opt/graphite'
+graphite_conf_dir: '/opt/graphite/conf'
+graphite_webapp_root: '/opt/graphite/webapp'
+graphite_datadir: '/opt/graphite/storage'
+graphite_log_dir: '/var/log/graphite'
 
 # MySQL/MariaDB
 graphite_manage_db: true
@@ -39,14 +42,14 @@ graphite_webapp:
       #-DEFAULT_CACHE_DURATION = 60
   - name: 'filesystem_path'
     config:
-      - GRAPHITE_ROOT = '/usr/share/graphite-web'
-      - CONF_DIR = '{{graphite_conf_dir}}'
+      - GRAPHITE_ROOT = '{{ graphite_webapp_root }}'
+      - CONF_DIR = '{{ graphite_conf_dir }}'
       - STORAGE_DIR = '{{graphite_datadir}}/whisper'
-      - CONTENT_DIR = '/usr/share/graphite-web/static'
+      - CONTENT_DIR = '{{ graphite_webapp_root }}/static'
       #-DASHBOARD_CONF = '/opt/graphite/conf/dashboard.conf'
       #-GRAPHTEMPLATES_CONF = '/opt/graphite/conf/graphTemplates.conf'
       - WHISPER_DIR = '{{graphite_datadir}}/whisper'
-      - LOG_DIR = '/var/log/graphite'
+      - LOG_DIR = '{{ graphite_log_dir }}'
       - INDEX_FILE = '{{graphite_datadir}}/search_index'
   #- name: 'email_configuration'
     #config:
@@ -90,7 +93,7 @@ graphite_carbon:
   - name: 'cache'
     config:
       - STORAGE_DIR    = {{graphite_datadir}}/
-      - CONF_DIR       = /etc/carbon/
+      - CONF_DIR       = {{ graphite_conf_dir }}
       - LOG_DIR        = /var/log/carbon/
       - PID_DIR        = /var/run/
       - LOCAL_DATA_DIR = {{graphite_datadir}}/whisper/

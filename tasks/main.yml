@@ -1,7 +1,7 @@
 ---
 
 # Install pacakges
-- include: install.yml
+- include: install_pip.yml
   tags: [graphite]
 
 # Configure MySQL/MariaDB
@@ -10,7 +10,7 @@
   tags: [graphite, graphite-mysql]
 
 # Carbon cache
-- include: carbon.yml
+- include: carbon_pip.yml
   tags: [graphite, carbon-cache]
 
 - include: carbon_db.yml

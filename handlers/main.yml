@@ -1,7 +1,10 @@
 ---
 
-- name: graphite syncdb
-  command: graphite-manage syncdb --noinput
+- name: graphite migrate
+  # command: graphite-manage syncdb --noinput
+  shell: export PYTHONPATH=/opt/graphite/webapp/; /opt/graphite/bin/python /opt/graphite/bin/django-admin.py migrate --noinput --settings=graphite.settings
+  become: True
+  become_user: _graphite
   when: graphite_manage_db
 
 - name: uwsgi restart
